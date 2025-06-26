@@ -1,13 +1,16 @@
 package main
 
 import (
-	"obstaclespointcloud"
 	"go.viam.com/rdk/module"
 	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/services/vision"
+
+	obstaclespointcloud "obstaclespointcloud/obstacles-pointcloud"
 )
 
 func main() {
-	// ModularMain can take multiple APIModel arguments, if your module implements multiple models.
-	module.ModularMain(resource.APIModel{ vision.API, obstaclespointcloud.ObstaclesPointcloud})
+	module.ModularMain(resource.APIModel{
+		API:   vision.API,
+		Model: obstaclespointcloud.Model,
+	})
 }
