@@ -15,8 +15,8 @@ import (
 	"go.viam.com/rdk/components/camera"
 	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/resource"
-	vis "go.viam.com/rdk/vision"
 	vision "go.viam.com/rdk/services/vision"
+	vis "go.viam.com/rdk/vision"
 	"go.viam.com/rdk/vision/classification"
 	objdet "go.viam.com/rdk/vision/objectdetection"
 	"go.viam.com/rdk/vision/segmentation"
@@ -29,13 +29,13 @@ var errUnimplemented = errors.New("unimplemented")
 
 type PointCloudConfig struct {
 	resource.TriviallyValidateConfig
-	DefaultCamera            string            `json:"camera_name"`
-	MinPointsInPlane         int               `json:"min_points_in_plane"`
-	MinPointsInSegment       int               `json:"min_points_in_segment"`
-	MaxDistFromPlaneMM       float64           `json:"max_dist_from_plane_mm"`
-	GroundAngleToleranceDegs float64           `json:"ground_angle_tolerance_degs"`
-	ClusteringRadius         int               `json:"clustering_radius"`
-	ClusteringStrictness     float64           `json:"clustering_strictness"`
+	DefaultCamera            string  `json:"camera_name"`
+	MinPointsInPlane         int     `json:"min_points_in_plane"`
+	MinPointsInSegment       int     `json:"min_points_in_segment"`
+	MaxDistFromPlaneMM       float64 `json:"max_dist_from_plane_mm"`
+	GroundAngleToleranceDegs float64 `json:"ground_angle_tolerance_degs"`
+	ClusteringRadius         int     `json:"clustering_radius"`
+	ClusteringStrictness     float64 `json:"clustering_strictness"`
 }
 
 type obstaclePointCloudService struct {
