@@ -3,13 +3,19 @@
   "module_id": "viam:obstacles-pointcloud",
   "visibility": "public",
   "url": "",
-  "description": "Modular vision service: obstacles-pointcloud",
+  "description": "Module for identifying well separated objects above a flat plane and for the depth of an object in a 3D point cloud",
   "models": [
     {
       "api": "rdk:service:vision",
       "model": "viam:obstacles-pointcloud:obstacles-pointcloud",
-      "short_description": "Provide a short (100 characters or less) description of this model here",
-      "markdown_link": "README.md#model-viamobstacles-pointcloudobstacles-pointcloud"
+      "short_description": "Module for identifying well separated objects above a flat plane",
+      "markdown_link": "README.md#module-viamobstacles-pointcloud"
+    },
+    {
+      "api": "rdk:service:vision",
+      "model": "viam:obstacles-depth:obstacles-depth",
+      "short_description": "Module for the depth of an object in a 3D point cloud",
+      "markdown_link": "README.md#module-viamobstacles-depth"
     }
   ],
   "applications": null,
