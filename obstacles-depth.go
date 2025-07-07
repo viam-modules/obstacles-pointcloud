@@ -1,6 +1,6 @@
 // Package obstaclespointcloud uses the 3D radius clustering algorithm as defined in the
 // RDK vision/segmentation package as vision model.
-package obstaclespointclouddepth
+package obstaclespointcloud
 
 import (
 	"context"
@@ -40,7 +40,6 @@ func init() {
 
 // ObsDepthConfig specifies the parameters to be used for the obstacle depth service.
 type ObsDepthConfig struct {
-	resource.TriviallyValidateConfig
 	MinPtsInPlane        int     `json:"min_points_in_plane"`
 	MinPtsInSegment      int     `json:"min_points_in_segment"`
 	MaxDistFromPlane     float64 `json:"max_dist_from_plane_mm"`
@@ -48,12 +47,45 @@ type ObsDepthConfig struct {
 	ClusteringStrictness float64 `json:"clustering_strictness"`
 	AngleTolerance       float64 `json:"ground_angle_tolerance_degs"`
 	DefaultCamera        string  `json:"camera_name"`
+	NormalVec            r3.Vector `json:"ground_plane_normal_vec"`
 }
 
 // obsDepth is the underlying struct actually used by the service.
 type obsDepth struct {
 	clusteringConf *segmentation.ErCCLConfig
 	intrinsics     *transform.PinholeCameraIntrinsics
+}
+
+func (cfg *ObsDepthConfig) Validate(path string) ([]string, []string, error) {
+	var deps []string
+	var warnings []string
+	if cfg.DefaultCamera == "" {
+		return nil, warnings, errors.Errorf(`expected "camera_name" attribute (DefaultCamera) for obstacles pointcloud at %q`, path)
+	}
+	deps = append(deps, cfg.DefaultCamera)
+
+	if cfg.MinPtsInPlane <= 0 {
+		return nil, warnings, errors.New("min_points_in_plane must be positive")
+	}
+	if cfg.MinPtsInSegment <= 0 {
+		return nil, warnings, errors.New("min_points_in_segment must be positive")
+	}
+	if cfg.MaxDistFromPlane <= 0 {
+		return nil, warnings, errors.New("max_dist_from_plane_mm must be positive")
+	}
+	if cfg.ClusteringRadius <= 0 {
+		return nil, warnings, errors.New("clustering_radius must be positive")
+	}
+	if cfg.ClusteringStrictness < 0 {
+		return nil, warnings, errors.New("clustering_strictness must be non-negative")
+	}
+	if cfg.AngleTolerance < 0 {
+		return nil, warnings, errors.New("ground_angle_tolerance_degs must be non-negative")
+	}
+	if cfg.NormalVec == (r3.Vector{}) {
+		return nil, warnings, errors.New("ground_plane_normal_vec must be set")
+	}
+	return deps, warnings, nil
 }
 
 func registerObstaclesDepth(

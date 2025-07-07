@@ -1,6 +1,6 @@
 // Package obstaclespointcloud uses the 3D radius clustering algorithm as defined in the
 // RDK vision/segmentation package as vision model.
-package obstaclespointclouddepth
+package obstaclespointcloud
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 var ObstaclesPointCloud = resource.NewModel("viam", "vision", "obstacles-pointcloud")
 
 func init() {
-	resource.RegisterService(vision.API, ObstaclesPointCloud, resource.Registration[vision.Service, *segmentation.ErCCLConfig]{
+	resource.RegisterService(vision.API, ObstaclesPointCloud, resource.Registration[vision.Service, *ObstaclesPointCloudConfig]{
 	    Constructor: func(
 			ctx context.Context, deps resource.Dependencies, c resource.Config, logger logging.Logger,
 		) (vision.Service, error) {
@@ -43,35 +43,36 @@ type ObstaclesPointCloudConfig struct {
 	NormalVec            r3.Vector `json:"ground_plane_normal_vec"`
 }
 
-func (cfg *ObstaclesPointCloudConfig) Validate(path string) ([]string, error) {
+func (cfg *ObstaclesPointCloudConfig) Validate(path string) ([]string, []string, error) {
 	var deps []string
+	var warnings []string
 	if cfg.DefaultCamera == "" {
-		return nil, errors.Errorf(`expected "camera_name" attribute (DefaultCamera) for obstacles pointcloud at %q`, path)
+		return nil, warnings, errors.Errorf(`expected "camera_name" attribute (DefaultCamera) for obstacles pointcloud at %q`, path)
 	}
 	deps = append(deps, cfg.DefaultCamera)
 
 	if cfg.MinPtsInPlane <= 0 {
-		return nil, errors.New("min_points_in_plane must be positive")
+		return nil, warnings, errors.New("min_points_in_plane must be positive")
 	}
 	if cfg.MinPtsInSegment <= 0 {
-		return nil, errors.New("min_points_in_segment must be positive")
+		return nil, warnings, errors.New("min_points_in_segment must be positive")
 	}
 	if cfg.MaxDistFromPlane <= 0 {
-		return nil, errors.New("max_dist_from_plane_mm must be positive")
+		return nil, warnings, errors.New("max_dist_from_plane_mm must be positive")
 	}
 	if cfg.ClusteringRadius <= 0 {
-		return nil, errors.New("clustering_radius must be positive")
+		return nil, warnings, errors.New("clustering_radius must be positive")
 	}
 	if cfg.ClusteringStrictness < 0 {
-		return nil, errors.New("clustering_strictness must be non-negative")
+		return nil, warnings, errors.New("clustering_strictness must be non-negative")
 	}
 	if cfg.AngleTolerance < 0 {
-		return nil, errors.New("ground_angle_tolerance_degs must be non-negative")
+		return nil, warnings, errors.New("ground_angle_tolerance_degs must be non-negative")
 	}
 	if cfg.NormalVec == (r3.Vector{}) {
-		return nil, errors.New("ground_plane_normal_vec must be set")
+		return nil, warnings, errors.New("ground_plane_normal_vec must be set")
 	}
-	return deps, nil
+	return deps, warnings, nil
 }
 
 // registerOPSegmenter creates a new 3D radius clustering segmenter from the config.

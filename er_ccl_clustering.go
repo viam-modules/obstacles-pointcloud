@@ -1,4 +1,4 @@
-package obstaclespointclouddepth
+package obstaclespointcloud
 
 import (
 	"context"
