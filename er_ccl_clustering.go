@@ -56,18 +56,18 @@ func (erCCL *ErCCLConfig) CheckValid() error {
 		erCCL.MinPtsInPlane = MinPtsInPlaneDefault
 	}
 	if erCCL.MinPtsInPlane <= 0 {
-		return errors.Errorf("min_points_in_plane must be greater than 0, got %v", erCCL.MinPtsInPlane)
+		return errors.Errorf("min_points_in_plane must be positive, got %v", erCCL.MinPtsInPlane)
 	}
 	// min_points_in_segment
 	if erCCL.MinPtsInSegment < 0 {
-		return errors.Errorf("min_points_in_segment must be greater than or equal to 0, got %v", erCCL.MinPtsInSegment)
+		return errors.Errorf("min_points_in_segment must be positive, got %v", erCCL.MinPtsInSegment)
 	}
 	// max_dist_from_plane_mm
 	if erCCL.MaxDistFromPlane == 0 {
 		erCCL.MaxDistFromPlane = MaxDistFromPlaneDefault
 	}
 	if erCCL.MaxDistFromPlane <= 0 {
-		return errors.Errorf("max_dist_from_plane must be greater than 0, got %v", erCCL.MaxDistFromPlane)
+		return errors.Errorf("max_dist_from_plane must be positive, got %v", erCCL.MaxDistFromPlane)
 	}
 	// ground_plane_normal_vec
 	// going to have to add that the ground plane's normal vec has to be {0, 1, 0} or {0, 0, 1}
@@ -89,14 +89,14 @@ func (erCCL *ErCCLConfig) CheckValid() error {
 		erCCL.ClusteringRadius = ClusteringRadiusDefault
 	}
 	if erCCL.ClusteringRadius < 0 {
-		return errors.Errorf("radius must be greater than 0, got %v", erCCL.ClusteringRadius)
+		return errors.Errorf("radius must be positive, got %v", erCCL.ClusteringRadius)
 	}
 	// clustering_strictness
 	if erCCL.ClusteringStrictness == 0 {
 		erCCL.ClusteringStrictness = ClusteringStrictnessDefault
 	}
 	if erCCL.ClusteringStrictness < 0 {
-		return errors.Errorf("clustering_strictness must be greater than 0, got %v", erCCL.ClusteringStrictness)
+		return errors.Errorf("clustering_strictness must be non-negative, got %v", erCCL.ClusteringStrictness)
 	}
 	return nil
 }
