@@ -20,7 +20,7 @@ var ObstaclesPointCloud = resource.NewModel("viam", "vision", "obstacles-pointcl
 
 func init() {
 	resource.RegisterService(vision.API, ObstaclesPointCloud, resource.Registration[vision.Service, *ObstaclesPointCloudConfig]{
-	    Constructor: func(
+		Constructor: func(
 			ctx context.Context, deps resource.Dependencies, c resource.Config, logger logging.Logger,
 		) (vision.Service, error) {
 			attrs, err := resource.NativeConfig[*ObstaclesPointCloudConfig](c)
@@ -33,13 +33,13 @@ func init() {
 }
 
 type ObstaclesPointCloudConfig struct {
-	MinPtsInPlane        int     `json:"min_points_in_plane"`
-	MinPtsInSegment      int     `json:"min_points_in_segment"`
-	MaxDistFromPlane     float64 `json:"max_dist_from_plane_mm"`
-	ClusteringRadius     int     `json:"clustering_radius"`
-	ClusteringStrictness float64 `json:"clustering_strictness"`
-	AngleTolerance       float64 `json:"ground_angle_tolerance_degs"`
-	DefaultCamera        string  `json:"camera_name"`
+	MinPtsInPlane        int       `json:"min_points_in_plane"`
+	MinPtsInSegment      int       `json:"min_points_in_segment"`
+	MaxDistFromPlane     float64   `json:"max_dist_from_plane_mm"`
+	ClusteringRadius     int       `json:"clustering_radius"`
+	ClusteringStrictness float64   `json:"clustering_strictness"`
+	AngleTolerance       float64   `json:"ground_angle_tolerance_degs"`
+	DefaultCamera        string    `json:"camera_name"`
 	NormalVec            r3.Vector `json:"ground_plane_normal_vec"`
 }
 
@@ -102,7 +102,7 @@ func registerPointCloudSegmenter(
 	err := cfg.CheckValid()
 	if err != nil {
 		return nil, errors.Wrap(err, "error building clustering config for obstacles pointcloud")
-	}	
+	}
 	if conf.DefaultCamera != "" {
 		_, err := camera.FromDependencies(deps, conf.DefaultCamera)
 		if err != nil {

@@ -21,7 +21,7 @@ import (
 	vision "go.viam.com/rdk/vision"
 	"go.viam.com/rdk/vision/segmentation"
 )
-	
+
 var ObstaclesDepth = resource.NewModel("viam", "vision", "obstacles-depth")
 
 func init() {
@@ -40,13 +40,13 @@ func init() {
 
 // ObsDepthConfig specifies the parameters to be used for the obstacle depth service.
 type ObsDepthConfig struct {
-	MinPtsInPlane        int     `json:"min_points_in_plane"`
-	MinPtsInSegment      int     `json:"min_points_in_segment"`
-	MaxDistFromPlane     float64 `json:"max_dist_from_plane_mm"`
-	ClusteringRadius     int     `json:"clustering_radius"`
-	ClusteringStrictness float64 `json:"clustering_strictness"`
-	AngleTolerance       float64 `json:"ground_angle_tolerance_degs"`
-	DefaultCamera        string  `json:"camera_name"`
+	MinPtsInPlane        int       `json:"min_points_in_plane"`
+	MinPtsInSegment      int       `json:"min_points_in_segment"`
+	MaxDistFromPlane     float64   `json:"max_dist_from_plane_mm"`
+	ClusteringRadius     int       `json:"clustering_radius"`
+	ClusteringStrictness float64   `json:"clustering_strictness"`
+	AngleTolerance       float64   `json:"ground_angle_tolerance_degs"`
+	DefaultCamera        string    `json:"camera_name"`
 	NormalVec            r3.Vector `json:"ground_plane_normal_vec"`
 }
 
@@ -190,4 +190,3 @@ func (o *obsDepth) obsDepthWithIntrinsics(ctx context.Context, src camera.Camera
 	cloud := depthadapter.ToPointCloud(dm, o.intrinsics)
 	return segmentation.ApplyERCCLToPointCloud(ctx, cloud, o.clusteringConf)
 }
-
