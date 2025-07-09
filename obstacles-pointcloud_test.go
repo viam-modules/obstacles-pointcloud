@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/golang/geo/r3"
 	"github.com/pkg/errors"
 	"go.viam.com/test"
 
@@ -45,7 +44,6 @@ func TestRadiusClusteringSegmentation(t *testing.T) {
 		MaxDistFromPlane:     10,
 		MinPtsInSegment:      3,
 		AngleTolerance:       20,
-		NormalVec:            r3.Vector{0, -1, 0},
 		ClusteringRadius:     5,
 		ClusteringStrictness: 3,
 		DefaultCamera:        "fakeCamera",

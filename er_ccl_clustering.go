@@ -21,6 +21,7 @@ const (
 	MaxCCLIterations            = 300000
 	GridSize                    = 200
 	MinPtsInPlaneDefault        = 500
+	MinPtsInSegmentDefault      = 10
 	MaxDistFromPlaneDefault     = 100
 	AngleToleranceDefault       = 30.0
 	ClusteringRadiusDefault     = 5
@@ -49,30 +50,30 @@ type node struct {
 	// label -1 means no cluster, otherwise labeled according to index
 }
 
-// CheckValid checks to see in the input values are valid.
-func (erCCL *ErCCLConfig) CheckValid() error {
+// SetDefaultValues sets the default values for the ErCCLConfig.
+func (erCCL *ErCCLConfig) SetDefaultValues() {
 	// min_points_in_plane
 	if erCCL.MinPtsInPlane == 0 {
 		erCCL.MinPtsInPlane = MinPtsInPlaneDefault
 	}
 	if erCCL.MinPtsInPlane <= 0 {
-		return errors.Errorf("min_points_in_plane must be positive, got %v", erCCL.MinPtsInPlane)
+		erCCL.MinPtsInPlane = MinPtsInPlaneDefault
 	}
 	// min_points_in_segment
 	if erCCL.MinPtsInSegment < 0 {
-		return errors.Errorf("min_points_in_segment must be positive, got %v", erCCL.MinPtsInSegment)
+		erCCL.MinPtsInSegment = MinPtsInSegmentDefault
 	}
 	// max_dist_from_plane_mm
 	if erCCL.MaxDistFromPlane == 0 {
 		erCCL.MaxDistFromPlane = MaxDistFromPlaneDefault
 	}
 	if erCCL.MaxDistFromPlane <= 0 {
-		return errors.Errorf("max_dist_from_plane must be positive, got %v", erCCL.MaxDistFromPlane)
+		erCCL.MaxDistFromPlane = MaxDistFromPlaneDefault
 	}
 	// ground_plane_normal_vec
 	// going to have to add that the ground plane's normal vec has to be {0, 1, 0} or {0, 0, 1}
 	if !erCCL.NormalVec.IsUnit() {
-		return errors.Errorf("ground_plane_normal_vec should be a unit vector, got %v", erCCL.NormalVec)
+		erCCL.NormalVec = r3.Vector{X: 0, Y: 0, Z: 1}
 	}
 	if erCCL.NormalVec.Norm2() == 0 {
 		erCCL.NormalVec = r3.Vector{X: 0, Y: 0, Z: 1}
@@ -82,23 +83,22 @@ func (erCCL *ErCCLConfig) CheckValid() error {
 		erCCL.AngleTolerance = AngleToleranceDefault
 	}
 	if erCCL.AngleTolerance > 180 || erCCL.AngleTolerance < 0 {
-		return errors.Errorf("max_angle_of_plane must between 0 & 180 (inclusive), got %v", erCCL.AngleTolerance)
+		erCCL.AngleTolerance = AngleToleranceDefault
 	}
 	// clustering_radius
 	if erCCL.ClusteringRadius == 0 {
 		erCCL.ClusteringRadius = ClusteringRadiusDefault
 	}
 	if erCCL.ClusteringRadius < 0 {
-		return errors.Errorf("radius must be positive, got %v", erCCL.ClusteringRadius)
+		erCCL.ClusteringRadius = ClusteringRadiusDefault
 	}
 	// clustering_strictness
 	if erCCL.ClusteringStrictness == 0 {
 		erCCL.ClusteringStrictness = ClusteringStrictnessDefault
 	}
 	if erCCL.ClusteringStrictness < 0 {
-		return errors.Errorf("clustering_strictness must be non-negative, got %v", erCCL.ClusteringStrictness)
+		erCCL.ClusteringStrictness = ClusteringStrictnessDefault
 	}
-	return nil
 }
 
 // ConvertAttributes changes the AttributeMap input into an ErCCLConfig.
@@ -109,7 +109,7 @@ func (erCCL *ErCCLConfig) ConvertAttributes(am utils.AttributeMap) error {
 	}
 	err = decoder.Decode(am)
 	if err == nil {
-		err = erCCL.CheckValid()
+		erCCL.SetDefaultValues()
 	}
 	return err
 }

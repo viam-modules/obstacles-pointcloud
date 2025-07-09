@@ -40,7 +40,6 @@ type ObstaclesPointCloudConfig struct {
 	ClusteringStrictness float64   `json:"clustering_strictness"`
 	AngleTolerance       float64   `json:"ground_angle_tolerance_degs"`
 	DefaultCamera        string    `json:"camera_name"`
-	NormalVec            r3.Vector `json:"ground_plane_normal_vec"`
 }
 
 func (cfg *ObstaclesPointCloudConfig) Validate(path string) ([]string, []string, error) {
@@ -68,9 +67,6 @@ func (cfg *ObstaclesPointCloudConfig) Validate(path string) ([]string, []string,
 	}
 	if cfg.AngleTolerance < 0 {
 		return nil, warnings, errors.New("ground_angle_tolerance_degs must be non-negative")
-	}
-	if cfg.NormalVec == (r3.Vector{}) {
-		return nil, warnings, errors.New("ground_plane_normal_vec must be set")
 	}
 	return deps, warnings, nil
 }

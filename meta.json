@@ -8,14 +8,14 @@
     {
       "api": "rdk:service:vision",
       "model": "viam:obstacles-pointcloud:obstacles-pointcloud",
-      "short_description": "Module for identifying well separated objects above a flat plane",
-      "markdown_link": "README.md#module-viamobstacles-pointcloud"
+      "short_description": "Service to identify well-separated objects above a flat plane",
+      "markdown_link": "README.md#obstacles-pointcloud-module"
     },
     {
       "api": "rdk:service:vision",
       "model": "viam:obstacles-depth:obstacles-depth",
-      "short_description": "Module for the depth of an object in a 3D point cloud",
-      "markdown_link": "README.md#module-viamobstacles-depth"
+      "short_description": "Service to measure the depth of an object in a 3D point cloud",
+      "markdown_link": "README.md#obstacles-pointcloud-module"
     }
   ],
   "applications": null,
