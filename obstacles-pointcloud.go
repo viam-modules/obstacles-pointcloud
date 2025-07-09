@@ -33,13 +33,13 @@ func init() {
 }
 
 type ObstaclesPointCloudConfig struct {
-	MinPtsInPlane        int       `json:"min_points_in_plane"`
-	MinPtsInSegment      int       `json:"min_points_in_segment"`
-	MaxDistFromPlane     float64   `json:"max_dist_from_plane_mm"`
-	ClusteringRadius     int       `json:"clustering_radius"`
-	ClusteringStrictness float64   `json:"clustering_strictness"`
-	AngleTolerance       float64   `json:"ground_angle_tolerance_degs"`
-	DefaultCamera        string    `json:"camera_name"`
+	MinPtsInPlane        int     `json:"min_points_in_plane"`
+	MinPtsInSegment      int     `json:"min_points_in_segment"`
+	MaxDistFromPlane     float64 `json:"max_dist_from_plane_mm"`
+	ClusteringRadius     int     `json:"clustering_radius"`
+	ClusteringStrictness float64 `json:"clustering_strictness"`
+	AngleTolerance       float64 `json:"ground_angle_tolerance_degs"`
+	DefaultCamera        string  `json:"camera_name"`
 }
 
 func (cfg *ObstaclesPointCloudConfig) Validate(path string) ([]string, []string, error) {
