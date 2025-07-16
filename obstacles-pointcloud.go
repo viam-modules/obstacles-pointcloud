@@ -91,7 +91,7 @@ func registerPointCloudSegmenter(
 		return nil, errors.New("config for obstacles pointcloud segmenter cannot be nil")
 	}
 	// build the clustering config
-	cfg := &segmentation.ErCCLConfig{
+	cfg := &ErCCLConfig{
 		MinPtsInPlane:        conf.MinPtsInPlane,
 		MinPtsInSegment:      conf.MinPtsInSegment,
 		MaxDistFromPlane:     conf.MaxDistFromPlane,
@@ -101,10 +101,7 @@ func registerPointCloudSegmenter(
 		ClusteringStrictness: conf.ClusteringStrictness,
 		DefaultCamera:        conf.DefaultCamera,
 	}
-	err := cfg.CheckValid()
-	if err != nil {
-		return nil, errors.Wrap(err, "error building clustering config for obstacles pointcloud")
-	}
+	cfg.SetDefaultValues()
 	if conf.DefaultCamera != "" {
 		_, err := camera.FromDependencies(deps, conf.DefaultCamera)
 		if err != nil {
