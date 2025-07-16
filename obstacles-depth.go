@@ -47,7 +47,6 @@ type ObsDepthConfig struct {
 	ClusteringStrictness float64   `json:"clustering_strictness"`
 	AngleTolerance       float64   `json:"ground_angle_tolerance_degs"`
 	DefaultCamera        string    `json:"camera_name"`
-	NormalVec            r3.Vector `json:"ground_plane_normal_vec"`
 }
 
 // obsDepth is the underlying struct actually used by the service.
@@ -81,9 +80,6 @@ func (cfg *ObsDepthConfig) Validate(path string) ([]string, []string, error) {
 	}
 	if cfg.AngleTolerance < 0 {
 		return nil, optionalDeps, errors.New("ground_angle_tolerance_degs must be non-negative")
-	}
-	if cfg.NormalVec == (r3.Vector{}) {
-		return nil, optionalDeps, errors.New("ground_plane_normal_vec must be set")
 	}
 	return deps, optionalDeps, nil
 }

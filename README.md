@@ -14,12 +14,7 @@ The following attribute template can be used to configure both services:
   "ground_angle_tolerance_degs": 30,
   "clustering_radius": 1,
   "clustering_strictness": 5,
-  "camera_name": "camera-1",
-  "ground_plane_normal_vec": {
-    "x": 0,
-    "y": -1,
-    "z": 0
-  }
+  "camera_name": "camera-1"
 }
 ```
 
@@ -29,14 +24,13 @@ The following attributes are available for this model:
 
 | Name          | Type   | Inclusion | Description                |
 |---------------|--------|-----------|----------------------------|
-| `min_points_in_plane` | int  | Required  | Minimum number of points in the plane |
-| `min_points_in_segment` | int | Required  | Minimum number of points in a segment |
-| `max_dist_from_plane_mm` | float | Required  | Maximum distance from the plane in mm |
-| `ground_angle_tolerance_degs` | float | Required  | Angle tolerance for the ground plane |
-| `clustering_radius` | int | Required  | Clustering radius |
-| `clustering_strictness` | float | Required  | Clustering strictness |
-| `camera_name` | string | Required  | Camera name |
-| `ground_plane_normal_vec` | vector | Required  | Ground plane normal vector. Default is (0, -1, 0) |
+| `min_points_in_plane` | int  | Optional  | Minimum number of points in the plane |
+| `min_points_in_segment` | int | Optional  | Minimum number of points in a segment |
+| `max_dist_from_plane_mm` | float | Optional  | Maximum distance from the plane in mm |
+| `ground_angle_tolerance_degs` | float | Optional  | Angle tolerance for the ground plane |
+| `clustering_radius` | int | Optional  | Clustering radius |
+| `clustering_strictness` | float | Optional  | Clustering strictness |
+| `camera_name` | string | Optional  | Name of the default camera |
 
 #### Example Camera Configuration
 
@@ -72,11 +66,6 @@ The following attributes are available for this model:
     "clustering_radius": 1,
     "clustering_strictness": 5,
     "min_points_in_plane": 500,
-    "ground_plane_normal_vec": {
-      "x": 0,
-      "y": -1,
-      "z": 0
-    },
     "camera_name": "camera-1"
   }
 }
@@ -96,11 +85,6 @@ The following attributes are available for this model:
     "clustering_radius": 1,
     "clustering_strictness": 5,
     "min_points_in_plane": 500,
-    "ground_plane_normal_vec": {
-      "x": 0,
-      "y": -1,
-      "z": 0
-    },
     "camera_name": "camera-1"
   }
 }
