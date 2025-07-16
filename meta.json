@@ -2,7 +2,7 @@
   "$schema": "https://dl.viam.dev/module.schema.json",
   "module_id": "viam:obstacles-pointcloud",
   "visibility": "public",
-  "url": "",
+  "url": "https://github.com/viam-modules/obstacles-pointcloud",
   "description": "Module for identifying well separated objects above a flat plane and for the depth of an object in a 3D point cloud",
   "models": [
     {
@@ -25,12 +25,13 @@
   "build": {
     "build": "make module.tar.gz",
     "setup": "make setup",
-    "path": "bin/module.tar.gz",
+    "path": "module.tar.gz",
     "arch": [
       "linux/amd64",
       "linux/arm64",
       "darwin/arm64",
       "windows/amd64"
-    ]
+    ],
+    "darwin_deps": ["go", "nlopt-static"]
   }
 }

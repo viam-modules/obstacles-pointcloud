@@ -83,7 +83,7 @@ func (erCCL *ErCCLConfig) SetDefaultValues() {
 	if erCCL.AngleTolerance > 180 || erCCL.AngleTolerance < 0 {
 		erCCL.AngleTolerance = AngleToleranceDefault
 	}
-	
+
 	// clustering_radius
 	if erCCL.ClusteringRadius == 0 {
 		erCCL.ClusteringRadius = ClusteringRadiusDefault
