@@ -50,24 +50,30 @@ func (cfg *ObstaclesPointCloudConfig) Validate(path string) ([]string, []string,
 	}
 	deps = append(deps, cfg.DefaultCamera)
 
-	if cfg.MinPtsInPlane <= 0 {
+	if cfg.MinPtsInPlane < 0 {
 		return nil, optionalDeps, errors.New("min_points_in_plane must be positive")
 	}
-	if cfg.MinPtsInSegment <= 0 {
+
+	if cfg.MinPtsInSegment < 0 {
 		return nil, optionalDeps, errors.New("min_points_in_segment must be positive")
 	}
-	if cfg.MaxDistFromPlane <= 0 {
+
+	if cfg.MaxDistFromPlane < 0 {
 		return nil, optionalDeps, errors.New("max_dist_from_plane_mm must be positive")
 	}
-	if cfg.ClusteringRadius <= 0 {
+
+	if cfg.ClusteringRadius < 0 {
 		return nil, optionalDeps, errors.New("clustering_radius must be positive")
 	}
+
 	if cfg.ClusteringStrictness < 0 {
 		return nil, optionalDeps, errors.New("clustering_strictness must be non-negative")
 	}
+
 	if cfg.AngleTolerance < 0 {
 		return nil, optionalDeps, errors.New("ground_angle_tolerance_degs must be non-negative")
 	}
+
 	return deps, optionalDeps, nil
 }
 

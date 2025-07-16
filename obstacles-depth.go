@@ -40,13 +40,13 @@ func init() {
 
 // ObsDepthConfig specifies the parameters to be used for the obstacle depth service.
 type ObsDepthConfig struct {
-	MinPtsInPlane        int       `json:"min_points_in_plane"`
-	MinPtsInSegment      int       `json:"min_points_in_segment"`
-	MaxDistFromPlane     float64   `json:"max_dist_from_plane_mm"`
-	ClusteringRadius     int       `json:"clustering_radius"`
-	ClusteringStrictness float64   `json:"clustering_strictness"`
-	AngleTolerance       float64   `json:"ground_angle_tolerance_degs"`
-	DefaultCamera        string    `json:"camera_name"`
+	MinPtsInPlane        int     `json:"min_points_in_plane"`
+	MinPtsInSegment      int     `json:"min_points_in_segment"`
+	MaxDistFromPlane     float64 `json:"max_dist_from_plane_mm"`
+	ClusteringRadius     int     `json:"clustering_radius"`
+	ClusteringStrictness float64 `json:"clustering_strictness"`
+	AngleTolerance       float64 `json:"ground_angle_tolerance_degs"`
+	DefaultCamera        string  `json:"camera_name"`
 }
 
 // obsDepth is the underlying struct actually used by the service.
@@ -63,24 +63,30 @@ func (cfg *ObsDepthConfig) Validate(path string) ([]string, []string, error) {
 	}
 	deps = append(deps, cfg.DefaultCamera)
 
-	if cfg.MinPtsInPlane <= 0 {
+	if cfg.MinPtsInPlane < 0 {
 		return nil, optionalDeps, errors.New("min_points_in_plane must be positive")
 	}
-	if cfg.MinPtsInSegment <= 0 {
+
+	if cfg.MinPtsInSegment < 0 {
 		return nil, optionalDeps, errors.New("min_points_in_segment must be positive")
 	}
-	if cfg.MaxDistFromPlane <= 0 {
+
+	if cfg.MaxDistFromPlane < 0 {
 		return nil, optionalDeps, errors.New("max_dist_from_plane_mm must be positive")
 	}
-	if cfg.ClusteringRadius <= 0 {
+
+	if cfg.ClusteringRadius < 0 {
 		return nil, optionalDeps, errors.New("clustering_radius must be positive")
 	}
+
 	if cfg.ClusteringStrictness < 0 {
 		return nil, optionalDeps, errors.New("clustering_strictness must be non-negative")
 	}
+
 	if cfg.AngleTolerance < 0 {
 		return nil, optionalDeps, errors.New("ground_angle_tolerance_degs must be non-negative")
 	}
+
 	return deps, optionalDeps, nil
 }
 

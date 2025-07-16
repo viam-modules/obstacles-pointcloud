@@ -56,20 +56,17 @@ func (erCCL *ErCCLConfig) SetDefaultValues() {
 	if erCCL.MinPtsInPlane == 0 {
 		erCCL.MinPtsInPlane = MinPtsInPlaneDefault
 	}
-	if erCCL.MinPtsInPlane <= 0 {
-		erCCL.MinPtsInPlane = MinPtsInPlaneDefault
-	}
+
 	// min_points_in_segment
-	if erCCL.MinPtsInSegment < 0 {
+	if erCCL.MinPtsInSegment == 0 {
 		erCCL.MinPtsInSegment = MinPtsInSegmentDefault
 	}
+
 	// max_dist_from_plane_mm
 	if erCCL.MaxDistFromPlane == 0 {
 		erCCL.MaxDistFromPlane = MaxDistFromPlaneDefault
 	}
-	if erCCL.MaxDistFromPlane <= 0 {
-		erCCL.MaxDistFromPlane = MaxDistFromPlaneDefault
-	}
+
 	// ground_plane_normal_vec
 	// going to have to add that the ground plane's normal vec has to be {0, 1, 0} or {0, 0, 1}
 	if !erCCL.NormalVec.IsUnit() {
@@ -78,6 +75,7 @@ func (erCCL *ErCCLConfig) SetDefaultValues() {
 	if erCCL.NormalVec.Norm2() == 0 {
 		erCCL.NormalVec = r3.Vector{X: 0, Y: 0, Z: 1}
 	}
+
 	// ground_angle_tolerance_degs
 	if erCCL.AngleTolerance == 0.0 {
 		erCCL.AngleTolerance = AngleToleranceDefault
@@ -85,20 +83,17 @@ func (erCCL *ErCCLConfig) SetDefaultValues() {
 	if erCCL.AngleTolerance > 180 || erCCL.AngleTolerance < 0 {
 		erCCL.AngleTolerance = AngleToleranceDefault
 	}
+	
 	// clustering_radius
 	if erCCL.ClusteringRadius == 0 {
 		erCCL.ClusteringRadius = ClusteringRadiusDefault
 	}
-	if erCCL.ClusteringRadius < 0 {
-		erCCL.ClusteringRadius = ClusteringRadiusDefault
-	}
+
 	// clustering_strictness
 	if erCCL.ClusteringStrictness == 0 {
 		erCCL.ClusteringStrictness = ClusteringStrictnessDefault
 	}
-	if erCCL.ClusteringStrictness < 0 {
-		erCCL.ClusteringStrictness = ClusteringStrictnessDefault
-	}
+
 }
 
 // ConvertAttributes changes the AttributeMap input into an ErCCLConfig.
