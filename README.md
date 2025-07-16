@@ -1,18 +1,20 @@
-# Module obstacles-pointcloud 
-
-Provide a description of the purpose of the module and any relevant information.
-
-## Model viam:obstacles-pointcloud:obstacles-pointcloud
-
-Provide a description of the model and any relevant information.
+# Obstacles PointCloud Module
+This module provides two services:
+- `obstacles-pointcloud`: identifies well separated objects above a flat plane. It first identifies the biggest plane in the scene, eliminates that plane, and clusters the remaining points into objects.
+- `obstacles-depth`: measures the depth of an object in a 3D point cloud.
 
 ### Configuration
-The following attribute template can be used to configure this model:
+The following attribute template can be used to configure both services:
 
 ```json
 {
-"attribute_1": <float>,
-"attribute_2": <string>
+  "min_points_in_plane": 500,
+  "min_points_in_segment": 10,
+  "max_dist_from_plane_mm": 100,
+  "ground_angle_tolerance_degs": 30,
+  "clustering_radius": 1,
+  "clustering_strictness": 5,
+  "camera_name": "camera-1"
 }
 ```
 
@@ -22,29 +24,68 @@ The following attributes are available for this model:
 
 | Name          | Type   | Inclusion | Description                |
 |---------------|--------|-----------|----------------------------|
-| `attribute_1` | float  | Required  | Description of attribute 1 |
-| `attribute_2` | string | Optional  | Description of attribute 2 |
+| `min_points_in_plane` | int  | Optional  | Minimum number of points in the plane |
+| `min_points_in_segment` | int | Optional  | Minimum number of points in a segment |
+| `max_dist_from_plane_mm` | float | Optional  | Maximum distance from the plane in mm |
+| `ground_angle_tolerance_degs` | float | Optional  | Angle tolerance for the ground plane |
+| `clustering_radius` | int | Optional  | Clustering radius |
+| `clustering_strictness` | float | Optional  | Clustering strictness |
+| `camera_name` | string | Optional  | Name of the default camera |
 
-#### Example Configuration
+#### Example Camera Configuration
 
 ```json
 {
-  "attribute_1": 1.0,
-  "attribute_2": "foo"
+  "name": "camera-1",
+  "api": "rdk:component:camera",
+  "model": "viam:camera:realsense",
+  "attributes": {
+    "width_px": 640,
+    "height_px": 480,
+    "little_endian_depth": false,
+    "serial_number": "",
+    "sensors": [
+      "depth",
+      "color"
+    ]
+  }
 }
 ```
 
-### DoCommand
-
-If your model implements DoCommand, provide an example payload of each command that is supported and the arguments that can be used. If your model does not implement DoCommand, remove this section.
-
-#### Example DoCommand
+#### Example Module Configuration for `obstacles-pointcloud`
 
 ```json
 {
-  "command_name": {
-    "arg1": "foo",
-    "arg2": 1
+  "name": "vision-1",
+  "api": "rdk:service:vision",
+  "model": "viam:vision:obstacles-pointcloud",
+  "attributes": {
+    "min_points_in_segment": 10,
+    "max_dist_from_plane_mm": 100,
+    "ground_angle_tolerance_degs": 30,
+    "clustering_radius": 1,
+    "clustering_strictness": 5,
+    "min_points_in_plane": 500,
+    "camera_name": "camera-1"
+  }
+}
+```
+
+#### Example Module Configuration for `obstacles-depth`
+
+```json
+{
+  "name": "vision-1",
+  "api": "rdk:service:vision",
+  "model": "viam:vision:obstacles-depth",
+  "attributes": {
+    "min_points_in_segment": 10,
+    "max_dist_from_plane_mm": 100,
+    "ground_angle_tolerance_degs": 30,
+    "clustering_radius": 1,
+    "clustering_strictness": 5,
+    "min_points_in_plane": 500,
+    "camera_name": "camera-1"
   }
 }
 ```
