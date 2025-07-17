@@ -19,10 +19,9 @@ import (
 	svision "go.viam.com/rdk/services/vision"
 	"go.viam.com/rdk/spatialmath"
 	vision "go.viam.com/rdk/vision"
-	"go.viam.com/rdk/vision/segmentation"
 )
 
-var ObstaclesDepth = resource.NewModel("viam", "vision", "obstacles-depth")
+var ObstaclesDepth = resource.NewModel("viam", "obstacles-depth", "obstacles-depth")
 
 func init() {
 	resource.RegisterService(svision.API, ObstaclesDepth, resource.Registration[svision.Service, *ObsDepthConfig]{
@@ -51,7 +50,7 @@ type ObsDepthConfig struct {
 
 // obsDepth is the underlying struct actually used by the service.
 type obsDepth struct {
-	clusteringConf *segmentation.ErCCLConfig
+	clusteringConf *ErCCLConfig
 	intrinsics     *transform.PinholeCameraIntrinsics
 }
 
@@ -103,7 +102,7 @@ func registerObstaclesDepth(
 		return nil, errors.New("config for obstacles_depth cannot be nil")
 	}
 	// build the clustering config
-	cfg := &segmentation.ErCCLConfig{
+	cfg := &ErCCLConfig{
 		MinPtsInPlane:        conf.MinPtsInPlane,
 		MinPtsInSegment:      conf.MinPtsInSegment,
 		MaxDistFromPlane:     conf.MaxDistFromPlane,
@@ -112,15 +111,12 @@ func registerObstaclesDepth(
 		ClusteringRadius:     conf.ClusteringRadius,
 		ClusteringStrictness: conf.ClusteringStrictness,
 	}
-	err := cfg.CheckValid()
-	if err != nil {
-		return nil, errors.Wrap(err, "error building clustering config for obstacles_depth")
-	}
+	cfg.SetDefaultValues()
 	myObsDep := &obsDepth{
 		clusteringConf: cfg,
 	}
 	if conf.DefaultCamera != "" {
-		_, err = camera.FromDependencies(deps, conf.DefaultCamera)
+		_, err := camera.FromDependencies(deps, conf.DefaultCamera)
 		if err != nil {
 			return nil, errors.Errorf("could not find camera %q", conf.DefaultCamera)
 		}
@@ -190,5 +186,5 @@ func (o *obsDepth) obsDepthWithIntrinsics(ctx context.Context, src camera.Camera
 		return nil, errors.New("could not convert image to depth map")
 	}
 	cloud := depthadapter.ToPointCloud(dm, o.intrinsics)
-	return segmentation.ApplyERCCLToPointCloud(ctx, cloud, o.clusteringConf)
+	return ApplyERCCLToPointCloud(ctx, cloud, o.clusteringConf)
 }
