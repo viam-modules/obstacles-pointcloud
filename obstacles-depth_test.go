@@ -8,8 +8,8 @@ import (
 	"go.viam.com/test"
 
 	"go.viam.com/rdk/components/camera"
-	pc "go.viam.com/rdk/pointcloud"
 	"go.viam.com/rdk/logging"
+	pc "go.viam.com/rdk/pointcloud"
 	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/services/vision"
 	"go.viam.com/rdk/testutils/inject"
