@@ -16,7 +16,7 @@ import (
 	"go.viam.com/rdk/vision/segmentation"
 )
 
-var ObstaclesPointCloud = resource.NewModel("viam", "vision", "obstacles-pointcloud")
+var ObstaclesPointCloud = resource.NewModel("viam", "obstacles-pointcloud", "obstacles-pointcloud")
 
 func init() {
 	resource.RegisterService(vision.API, ObstaclesPointCloud, resource.Registration[vision.Service, *ObstaclesPointCloudConfig]{

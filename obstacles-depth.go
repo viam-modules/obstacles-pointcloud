@@ -21,7 +21,7 @@ import (
 	vision "go.viam.com/rdk/vision"
 )
 
-var ObstaclesDepth = resource.NewModel("viam", "vision", "obstacles-depth")
+var ObstaclesDepth = resource.NewModel("viam", "obstacles-depth", "obstacles-depth")
 
 func init() {
 	resource.RegisterService(svision.API, ObstaclesDepth, resource.Registration[svision.Service, *ObsDepthConfig]{
