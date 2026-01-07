@@ -116,7 +116,7 @@ func registerObstaclesDepth(
 		clusteringConf: cfg,
 	}
 	if conf.DefaultCamera != "" {
-		_, err := camera.FromDependencies(deps, conf.DefaultCamera)
+		_, err := camera.FromProvider(deps, conf.DefaultCamera)
 		if err != nil {
 			return nil, errors.Errorf("could not find camera %q", conf.DefaultCamera)
 		}
@@ -146,7 +146,7 @@ func (o *obsDepth) buildObsDepth(logger logging.Logger) func(
 
 // buildObsDepthNoIntrinsics will return the median depth in the depth map as a Geometry point.
 func (o *obsDepth) obsDepthNoIntrinsics(ctx context.Context, src camera.Camera) ([]*vision.Object, error) {
-	img, err := camera.DecodeImageFromCamera(ctx, "", nil, src)
+	img, err := camera.DecodeImageFromCamera(ctx, src, nil, nil)
 	if err != nil {
 		return nil, errors.Errorf("could not get image from %s", src)
 	}
@@ -177,7 +177,7 @@ func (o *obsDepth) obsDepthWithIntrinsics(ctx context.Context, src camera.Camera
 	if o.intrinsics == nil {
 		return nil, errors.New("tried to build obstacles depth with intrinsics but no instrinsics found")
 	}
-	img, err := camera.DecodeImageFromCamera(ctx, "", nil, src)
+	img, err := camera.DecodeImageFromCamera(ctx, src, nil, nil)
 	if err != nil {
 		return nil, errors.Errorf("could not get image from %s", src)
 	}
