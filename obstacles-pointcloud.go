@@ -117,7 +117,7 @@ func registerPointCloudSegmenter(
 	}
 	cfg.SetDefaultValues()
 	if conf.DefaultCamera != "" {
-		_, err := camera.FromDependencies(deps, conf.DefaultCamera)
+		_, err := camera.FromProvider(deps, conf.DefaultCamera)
 		if err != nil {
 			return nil, errors.Errorf("could not find camera %q", conf.DefaultCamera)
 		}

@@ -19,7 +19,7 @@ func TestObstaclesDepthRegistration(t *testing.T) {
 	r := &inject.Robot{}
 	r.LoggerFunc = func() logging.Logger { return nil }
 	cam := &inject.Camera{}
-	cam.NextPointCloudFunc = func(ctx context.Context) (pc.PointCloud, error) {
+	cam.NextPointCloudFunc = func(ctx context.Context, _ map[string]interface{}) (pc.PointCloud, error) {
 		return nil, errors.New("no properties")
 	}
 	r.ResourceNamesFunc = func() []resource.Name {
