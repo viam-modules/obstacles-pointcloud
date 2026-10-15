@@ -19,6 +19,7 @@ import (
 	svision "go.viam.com/rdk/services/vision"
 	"go.viam.com/rdk/spatialmath"
 	vision "go.viam.com/rdk/vision"
+	"go.viam.com/rdk/vision/detection3d"
 )
 
 var ObstaclesDepth = resource.NewModel("viam", "obstacles-depth", "obstacles-depth")
@@ -123,7 +124,7 @@ func registerObstaclesDepth(
 	}
 
 	segmenter := myObsDep.buildObsDepth(logger) // does the thing
-	return svision.NewService(name, deps, logger, nil, nil, nil, segmenter, conf.DefaultCamera)
+	return svision.NewService(name, deps, logger, nil, nil, nil, detection3d.FromSegmenter(name.ShortName(), segmenter), conf.DefaultCamera)
 }
 
 // BuildObsDepth will check for intrinsics and determine how to build based on that.
