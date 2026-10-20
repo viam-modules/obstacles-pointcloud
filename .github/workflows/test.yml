@@ -1,0 +1,28 @@
+name: run linter, unit tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Run setup
+        run: make setup
+
+      - name: Run unit tests
+        run: make test
+
+      - name: Run linter
+        run: make lint

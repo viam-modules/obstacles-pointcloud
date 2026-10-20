@@ -13,6 +13,7 @@ import (
 	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/services/vision"
+	"go.viam.com/rdk/vision/detection3d"
 	"go.viam.com/rdk/vision/segmentation"
 )
 
@@ -123,5 +124,5 @@ func registerPointCloudSegmenter(
 		}
 	}
 	segmenter := segmentation.Segmenter(cfg.ErCCLAlgorithm)
-	return vision.NewService(name, deps, logger, nil, nil, nil, segmenter, conf.DefaultCamera)
+	return vision.NewService(name, deps, logger, nil, nil, nil, detection3d.FromSegmenter(name.ShortName(), segmenter), conf.DefaultCamera)
 }
