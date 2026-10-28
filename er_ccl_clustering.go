@@ -150,12 +150,7 @@ func ApplyERCCLToPointCloud(ctx context.Context, cloud pc.PointCloud, cfg *ErCCL
 	heightIsY := cfg.NormalVec.Y != 0
 
 	// calculating s value, want GridSize x GridSize graph
-	resolution := math.Ceil((nonPlane.MetaData().MaxX - nonPlane.MetaData().MinX) / GridSize)
-	if heightIsY {
-		resolution = math.Ceil((math.Ceil((nonPlane.MetaData().MaxZ-nonPlane.MetaData().MinZ)/GridSize) + resolution) / 2)
-	} else {
-		resolution = math.Ceil((math.Ceil((nonPlane.MetaData().MaxY-nonPlane.MetaData().MinY)/GridSize) + resolution) / 2)
-	}
+	resolution := gridResolution(nonPlane.MetaData(), heightIsY)
 
 	// create obstacle flag map, return that 2d slice of nodes
 	labelMap := pcProjection(nonPlane, resolution, heightIsY)
@@ -230,6 +225,37 @@ func LabelMapUpdate(labelMap [][]node, r int, alpha, beta, s float64) error {
 		i++
 	}
 	return nil
+}
+
+// gridResolution picks the cell size for the projection grid, aiming at GridSize x GridSize
+// cells across the cloud's extent.
+//
+// **It must never return zero.** The result is used as a divisor to turn every point into a grid
+// index, so a cloud with no extent in the grid axes -- a single surviving point, or several
+// points sharing a coordinate -- makes each index int(math.Ceil(0/0)), i.e. int(NaN).
+//
+// That conversion is not portable, which is why this can hide for a long time. On amd64 int(NaN)
+// is MinInt64, the lookup in pcProjection panics with
+//
+//	panic: runtime error: index out of range [-9223372036854775808]
+//
+// and the module process dies; on arm64 the same conversion saturates to 0, every index lands in
+// cell zero, and nothing appears to be wrong. An empty cloud reaches the same place by a
+// different route: its metadata bounds are +/-MaxFloat, so the extent is -Inf.
+//
+// One cell is the smallest meaningful grid and the right answer for a cloud that occupies no
+// space: everything falls into it and is pruned by minPtsInSegment as usual.
+func gridResolution(md pc.MetaData, heightIsY bool) float64 {
+	resolution := math.Ceil((md.MaxX - md.MinX) / GridSize)
+	if heightIsY {
+		resolution = math.Ceil((math.Ceil((md.MaxZ-md.MinZ)/GridSize) + resolution) / 2)
+	} else {
+		resolution = math.Ceil((math.Ceil((md.MaxY-md.MinY)/GridSize) + resolution) / 2)
+	}
+	if math.IsNaN(resolution) || resolution < 1 {
+		return 1
+	}
+	return resolution
 }
 
 func pcProjection(cloud pc.PointCloud, s float64, heightIsY bool) [][]node {
