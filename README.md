@@ -105,10 +105,13 @@ The camera must serve a depth image. The model uses the image with the raw depth
     "height_px": 480,
     "little_endian_depth": false,
     "serial_number": "",
-    "sensors": ["depth", "color"]
+    "sensors": ["depth", "color"],
+    "align_color_depth": true
   }
 }
 ```
+
+`align_color_depth` maps the depth image onto the color image's view, so the intrinsics the camera reports (the color image's) apply to it; without it, obstacles-depth logs a warning and positions come out wrong.
 
 ## Getting object poses in the world
 

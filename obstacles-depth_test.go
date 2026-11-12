@@ -168,3 +168,31 @@ func TestObstaclesDepthGroundNormal(t *testing.T) {
 	_, err := registerObstaclesDepth(context.Background(), vision.Named("depth"), conf, deps, logging.NewTestLogger(t))
 	test.That(t, err, test.ShouldBeNil)
 }
+
+func TestSameView(t *testing.T) {
+	in := &transform.PinholeCameraIntrinsics{Width: 1280, Height: 720}
+	test.That(t, sameView(in, 640, 360), test.ShouldBeTrue)
+	test.That(t, sameView(in, 848, 480), test.ShouldBeTrue) // a RealSense depth size: rounding
+	test.That(t, sameView(in, 640, 480), test.ShouldBeFalse)
+	test.That(t, sameView(&transform.PinholeCameraIntrinsics{}, 640, 480), test.ShouldBeTrue)
+}
+
+func TestObstaclesDepthWarnsWhenDepthIsAnotherView(t *testing.T) {
+	cam := rgbdCamera(true) // depth 200 x 200
+	cam.PropertiesFunc = func(context.Context) (camera.Properties, error) {
+		return camera.Properties{IntrinsicParams: &transform.PinholeCameraIntrinsics{
+			Width: 400, Height: 300, Fx: 400, Fy: 400, Ppx: 200, Ppy: 150,
+		}}, nil
+	}
+	cfg := &ErCCLConfig{MinPtsInPlane: 2000, MinPtsInSegment: 100, MaxDistFromPlane: 10, NormalVec: r3.Vector{Z: 1}}
+	cfg.SetDefaultValues()
+	logger, logs := logging.NewObservedTestLogger(t)
+	_, err := (&obsDepth{clusteringConf: cfg}).buildObsDepth(logger)(context.Background(), cam)
+	test.That(t, err, test.ShouldBeNil)
+	test.That(t, logs.FilterMessageSnippet("aspect ratio differs").Len(), test.ShouldEqual, 1)
+
+	logger, logs = logging.NewObservedTestLogger(t) // the same view at half resolution: no warning
+	_, err = (&obsDepth{clusteringConf: cfg}).buildObsDepth(logger)(context.Background(), rgbdCamera(true))
+	test.That(t, err, test.ShouldBeNil)
+	test.That(t, logs.FilterMessageSnippet("aspect ratio differs").Len(), test.ShouldEqual, 0)
+}

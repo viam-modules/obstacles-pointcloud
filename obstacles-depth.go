@@ -5,6 +5,7 @@ package obstaclespointcloud
 import (
 	"context"
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 
@@ -156,7 +157,7 @@ func (o *obsDepth) buildObsDepth(logger logging.Logger) func(
 			logger.CWarn(ctx, "obstacles depth started but camera did not have intrinsic parameters")
 			return o.obsDepthNoIntrinsics(ctx, src)
 		}
-		return o.obsDepthWithIntrinsics(ctx, src, props.IntrinsicParams)
+		return o.obsDepthWithIntrinsics(ctx, src, props.IntrinsicParams, logger)
 	}
 }
 
@@ -184,11 +185,17 @@ func (o *obsDepth) obsDepthNoIntrinsics(ctx context.Context, src camera.Camera) 
 // buildObsDepthWithIntrinsics will use the methodology in Manduchi et al. to find obstacle points
 // before clustering and projecting those points into 3D obstacles.
 func (o *obsDepth) obsDepthWithIntrinsics(
-	ctx context.Context, src camera.Camera, intrinsics *transform.PinholeCameraIntrinsics,
+	ctx context.Context, src camera.Camera, intrinsics *transform.PinholeCameraIntrinsics, logger logging.Logger,
 ) ([]*vision.Object, error) {
 	dm, err := depthMapFromCamera(ctx, src)
 	if err != nil {
 		return nil, err
+	}
+	if !sameView(intrinsics, dm.Width(), dm.Height()) {
+		logger.CWarnw(ctx, "the depth image's aspect ratio differs from the camera's intrinsics, so it isn't the same "+
+			"view and obstacle positions will be wrong; align depth to color (for a RealSense, align_color_depth: true)",
+			"intrinsics", fmt.Sprintf("%dx%d", intrinsics.Width, intrinsics.Height),
+			"depth", fmt.Sprintf("%dx%d", dm.Width(), dm.Height()))
 	}
 	cloud := depthadapter.ToPointCloud(dm, scaledIntrinsics(intrinsics, dm.Width(), dm.Height()))
 	return ApplyERCCLToPointCloud(ctx, cloud, o.clusteringConf)
@@ -222,8 +229,19 @@ func depthMapFromCamera(ctx context.Context, src camera.Camera) (*rimage.DepthMa
 	return nil, errors.Errorf("no depth image from camera %s: %s", src.Name(), strings.Join(reasons, "; "))
 }
 
+// sameView reports whether an image of width x height can be the view the intrinsics describe at
+// another resolution: the same aspect ratio, within 1% (rounding, e.g. 848x480 against 1280x720).
+func sameView(in *transform.PinholeCameraIntrinsics, width, height int) bool {
+	if in.Width <= 0 || in.Height <= 0 || width <= 0 || height <= 0 {
+		return true // nothing to compare
+	}
+	sx, sy := float64(width)/float64(in.Width), float64(height)/float64(in.Height)
+	return math.Abs(sx-sy) <= 0.01*math.Max(sx, sy)
+}
+
 // scaledIntrinsics returns the intrinsics for an image of width x height. Cameras report the
-// color image's intrinsics, and some serve depth at another resolution of the same view.
+// color image's intrinsics, and some serve depth at another resolution of the same view; it
+// assumes that (see sameView): depth not aligned to color needs aligning, not scaling.
 func scaledIntrinsics(in *transform.PinholeCameraIntrinsics, width, height int) *transform.PinholeCameraIntrinsics {
 	if in.Width <= 0 || in.Height <= 0 || (in.Width == width && in.Height == height) {
 		return in
