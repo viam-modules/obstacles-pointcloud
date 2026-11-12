@@ -185,6 +185,11 @@ func ApplyERCCLToPointCloud(ctx context.Context, cloud pc.PointCloud, cfg *ErCCL
 		if !ok {
 			segments[labelMap[i][j].label] = pc.NewBasicEmpty()
 		}
+		if d == nil {
+			// clouds built from a depth map carry no data per point; RDK's octree, which
+			// GetDetections3D builds from each segment, needs some
+			d = pc.NewBasicData()
+		}
 		err := segments[labelMap[i][j].label].Set(p, d)
 		if err != nil {
 			iterateErr = err
