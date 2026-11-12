@@ -4,7 +4,9 @@ package obstaclespointcloud
 
 import (
 	"context"
+	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/golang/geo/r3"
 	"github.com/pkg/errors"
@@ -18,6 +20,7 @@ import (
 	"go.viam.com/rdk/rimage/transform"
 	svision "go.viam.com/rdk/services/vision"
 	"go.viam.com/rdk/spatialmath"
+	"go.viam.com/rdk/utils"
 	vision "go.viam.com/rdk/vision"
 	"go.viam.com/rdk/vision/detection3d"
 )
@@ -40,26 +43,39 @@ func init() {
 
 // ObsDepthConfig specifies the parameters to be used for the obstacle depth service.
 type ObsDepthConfig struct {
-	MinPtsInPlane        int     `json:"min_points_in_plane"`
-	MinPtsInSegment      int     `json:"min_points_in_segment"`
-	MaxDistFromPlane     float64 `json:"max_dist_from_plane_mm"`
-	ClusteringRadius     int     `json:"clustering_radius"`
-	ClusteringStrictness float64 `json:"clustering_strictness"`
-	AngleTolerance       float64 `json:"ground_angle_tolerance_degs"`
-	DefaultCamera        string  `json:"camera_name"`
+	MinPtsInPlane        int       `json:"min_points_in_plane"`
+	MinPtsInSegment      int       `json:"min_points_in_segment"`
+	MaxDistFromPlane     float64   `json:"max_dist_from_plane_mm"`
+	ClusteringRadius     int       `json:"clustering_radius"`
+	ClusteringStrictness float64   `json:"clustering_strictness"`
+	AngleTolerance       float64   `json:"ground_angle_tolerance_degs"`
+	DefaultCamera        string    `json:"camera_name"`
+	GroundPlaneNormalVec NormalVec `json:"ground_plane_normal_vec"`
 }
+
+// groundNormal is the configured ground normal scaled to unit length, or obsDepthDefaultNormal
+// when none is set.
+func (cfg *ObsDepthConfig) groundNormal() r3.Vector {
+	if n := cfg.GroundPlaneNormalVec; n.X != 0 || n.Y != 0 || n.Z != 0 {
+		return r3.Vector{X: n.X, Y: n.Y, Z: n.Z}.Normalize()
+	}
+	return obsDepthDefaultNormal
+}
+
+// obsDepthDefaultNormal is the ground normal when none is configured: the camera's -y axis,
+// as for a forward-looking camera.
+var obsDepthDefaultNormal = r3.Vector{X: 0, Y: -1, Z: 0}
 
 // obsDepth is the underlying struct actually used by the service.
 type obsDepth struct {
 	clusteringConf *ErCCLConfig
-	intrinsics     *transform.PinholeCameraIntrinsics
 }
 
 func (cfg *ObsDepthConfig) Validate(path string) ([]string, []string, error) {
 	var deps []string
 	var optionalDeps []string
 	if cfg.DefaultCamera == "" {
-		return nil, optionalDeps, errors.Errorf(`expected "camera_name" attribute (DefaultCamera) for obstacles pointcloud at %q`, path)
+		return nil, optionalDeps, errors.Errorf(`expected "camera_name" attribute (DefaultCamera) for obstacles depth at %q`, path)
 	}
 	deps = append(deps, cfg.DefaultCamera)
 
@@ -107,7 +123,7 @@ func registerObstaclesDepth(
 		MinPtsInPlane:        conf.MinPtsInPlane,
 		MinPtsInSegment:      conf.MinPtsInSegment,
 		MaxDistFromPlane:     conf.MaxDistFromPlane,
-		NormalVec:            r3.Vector{0, -1, 0},
+		NormalVec:            conf.groundNormal(),
 		AngleTolerance:       conf.AngleTolerance,
 		ClusteringRadius:     conf.ClusteringRadius,
 		ClusteringStrictness: conf.ClusteringStrictness,
@@ -140,21 +156,15 @@ func (o *obsDepth) buildObsDepth(logger logging.Logger) func(
 			logger.CWarn(ctx, "obstacles depth started but camera did not have intrinsic parameters")
 			return o.obsDepthNoIntrinsics(ctx, src)
 		}
-		o.intrinsics = props.IntrinsicParams
-		return o.obsDepthWithIntrinsics(ctx, src)
+		return o.obsDepthWithIntrinsics(ctx, src, props.IntrinsicParams)
 	}
 }
 
 // buildObsDepthNoIntrinsics will return the median depth in the depth map as a Geometry point.
 func (o *obsDepth) obsDepthNoIntrinsics(ctx context.Context, src camera.Camera) ([]*vision.Object, error) {
-	img, err := camera.DecodeImageFromCamera(ctx, src, nil, nil)
+	dm, err := depthMapFromCamera(ctx, src)
 	if err != nil {
-		return nil, errors.Errorf("could not get image from %s", src)
-	}
-
-	dm, err := rimage.ConvertImageToDepthMap(ctx, img)
-	if err != nil {
-		return nil, errors.New("could not convert image to depth map")
+		return nil, err
 	}
 	depData := dm.Data()
 	if len(depData) == 0 {
@@ -173,19 +183,55 @@ func (o *obsDepth) obsDepthNoIntrinsics(ctx context.Context, src camera.Camera) 
 
 // buildObsDepthWithIntrinsics will use the methodology in Manduchi et al. to find obstacle points
 // before clustering and projecting those points into 3D obstacles.
-func (o *obsDepth) obsDepthWithIntrinsics(ctx context.Context, src camera.Camera) ([]*vision.Object, error) {
-	// Check if we have intrinsics here. If not, don't even try
-	if o.intrinsics == nil {
-		return nil, errors.New("tried to build obstacles depth with intrinsics but no instrinsics found")
-	}
-	img, err := camera.DecodeImageFromCamera(ctx, src, nil, nil)
+func (o *obsDepth) obsDepthWithIntrinsics(
+	ctx context.Context, src camera.Camera, intrinsics *transform.PinholeCameraIntrinsics,
+) ([]*vision.Object, error) {
+	dm, err := depthMapFromCamera(ctx, src)
 	if err != nil {
-		return nil, errors.Errorf("could not get image from %s", src)
+		return nil, err
 	}
-	dm, err := rimage.ConvertImageToDepthMap(ctx, img)
-	if err != nil {
-		return nil, errors.New("could not convert image to depth map")
-	}
-	cloud := depthadapter.ToPointCloud(dm, o.intrinsics)
+	cloud := depthadapter.ToPointCloud(dm, scaledIntrinsics(intrinsics, dm.Width(), dm.Height()))
 	return ApplyERCCLToPointCloud(ctx, cloud, o.clusteringConf)
+}
+
+// depthMapFromCamera returns the camera's depth image as a depth map. RGB-D cameras serve
+// several images, often color first, so it tries the images whose MIME type is raw depth
+// first, then the rest in order, and returns the first one that converts.
+func depthMapFromCamera(ctx context.Context, src camera.Camera) (*rimage.DepthMap, error) {
+	images, _, err := src.Images(ctx, nil, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not get images from %s", src.Name())
+	}
+	if len(images) == 0 {
+		return nil, errors.Errorf("camera %s returned no images", src.Name())
+	}
+	sort.SliceStable(images, func(i, j int) bool {
+		return images[i].MimeType() == utils.MimeTypeRawDepth && images[j].MimeType() != utils.MimeTypeRawDepth
+	})
+	var reasons []string
+	for _, ni := range images {
+		img, err := ni.Image(ctx)
+		if err == nil {
+			var dm *rimage.DepthMap
+			if dm, err = rimage.ConvertImageToDepthMap(ctx, img); err == nil {
+				return dm, nil
+			}
+		}
+		reasons = append(reasons, fmt.Sprintf("image %q (%s): %v", ni.SourceName, ni.MimeType(), err))
+	}
+	return nil, errors.Errorf("no depth image from camera %s: %s", src.Name(), strings.Join(reasons, "; "))
+}
+
+// scaledIntrinsics returns the intrinsics for an image of width x height. Cameras report the
+// color image's intrinsics, and some serve depth at another resolution of the same view.
+func scaledIntrinsics(in *transform.PinholeCameraIntrinsics, width, height int) *transform.PinholeCameraIntrinsics {
+	if in.Width <= 0 || in.Height <= 0 || (in.Width == width && in.Height == height) {
+		return in
+	}
+	sx, sy := float64(width)/float64(in.Width), float64(height)/float64(in.Height)
+	return &transform.PinholeCameraIntrinsics{
+		Width: width, Height: height,
+		Fx: in.Fx * sx, Fy: in.Fy * sy,
+		Ppx: in.Ppx * sx, Ppy: in.Ppy * sy,
+	}
 }

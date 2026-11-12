@@ -65,6 +65,7 @@ Zero, the value of an omitted attribute, means the default.
   "min_points_in_plane": 500,
   "min_points_in_segment": 10,
   "max_dist_from_plane_mm": 100,
+  "ground_plane_normal_vec": { "x": 0, "y": -1, "z": 0 },
   "ground_angle_tolerance_degs": 30,
   "clustering_radius": 5,
   "clustering_strictness": 1
@@ -73,14 +74,9 @@ Zero, the value of an omitted attribute, means the default.
 
 ### Attributes
 
-`camera_name`, `min_points_in_plane`, `min_points_in_segment`, `max_dist_from_plane_mm`, `ground_angle_tolerance_degs`, `clustering_radius` and `clustering_strictness` work as for `obstacles-pointcloud` above, with the same defaults.
+All attributes work as for `obstacles-pointcloud` above, with the same defaults, except `ground_plane_normal_vec`, which defaults to `{"x": 0, "y": -1, "z": 0}` (the camera's `-y` axis) for a forward-looking camera such as a RealSense on a rover, and is scaled to unit length rather than replaced when it isn't one. For a camera looking straight down at a table, use `{"x": 0, "y": 0, "z": 1}`.
 
-This model has no `ground_plane_normal_vec`: the ground normal is fixed at `{"x": 0, "y": -1, "z": 0}`, the camera's `-y` axis, which suits a forward-looking camera such as a RealSense on a rover.
-
-### Limits
-
-- The camera's first image must be its depth image: the model decodes the first image the camera returns. Cameras that serve a color image first, such as a RealSense with `"sensors": ["color", "depth"]`, fail with `could not convert image to depth map`.
-- Because the ground normal is fixed, the model doesn't suit a camera looking down at a table.
+The camera must serve a depth image. The model uses the image with the raw depth MIME type (`image/vnd.viam.dep`), or else the first image that decodes as depth, so RGB-D cameras that serve a color image first work too. If the depth image has a different resolution from the one the camera's intrinsic parameters describe (cameras report the color image's), the model scales the intrinsics to the depth image.
 
 ### Example
 
